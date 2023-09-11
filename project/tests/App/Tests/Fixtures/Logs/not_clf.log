@@ -1,0 +1,4 @@
+141023 23:14:54 mysqld_safe Starting mysqld daemon with databases from /Library/Application Support/appsolute/MAMP PRO/db/mysql
+141023 23:14:54 [Warning] Using unique option prefix key_buffer instead of key_buffer_size is deprecated and will be removed in a future release. Please use the full name instead.
+141023 23:14:54 [Warning] Setting lower_case_table_names=2 because file system for /Library/Application Support/appsolute/MAMP PRO/db/mysql/ is case insensitive
+141023 23:14:54 [Note] Plugin 'FEDERATED' is disabled.

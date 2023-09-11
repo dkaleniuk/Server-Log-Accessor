@@ -1,0 +1,66 @@
+# This file is the entry point to configure your own services.
+# Files in the packages/ subdirectory configure your dependencies.
+
+# Put parameters here that don't need to change on each machine where the app is deployed
+# https://symfony.com/doc/current/best_practices.html#use-parameters-for-application-configuration
+parameters:
+    app.invalid_lines_count_to_stop_parser: '%env(INVALID_LINES_COUNT_TO_STOP_PARSER)%'
+    app.collector_batch_size: '%env(COLLECTOR_BATCH_SIZE)%'
+    app.clf_date_format: '%env(CLF_DATE_FORMAT)%'
+
+services:
+    # default configuration for services in *this* file
+    _defaults:
+        autowire: true      # Automatically injects dependencies in your services.
+        autoconfigure: true # Automatically registers your services as commands, event subscribers, etc.
+
+    # makes classes in src/ available to be used as services
+    # this creates a service per class whose id is the fully-qualified class name
+    App\:
+        resource: '../src/'
+        exclude:
+            - '../src/DependencyInjection/'
+            - '../src/Entity/'
+            - '../src/Kernel.php'
+
+    # add more service definitions when explicit configuration is needed
+    # please note that last definitions always *replace* previous ones
+
+    App\Http\RequestTransformer\RequestTransformer: ~
+
+    app.log.repository:
+        class: App\Repository\LogEntryRepository
+        tags: ['doctrine.repository_service']
+
+    App\Repository\LogEntryRepositoryInterface: '@app.log.repository'
+
+    App\Http\ArgumentResolver\RequestArgumentResolver:
+        tags:
+            - { name: controller.argument_value_resolver, priority: 50 }
+
+
+    app.log.command.log_loader_command:
+        class: App\Command\LogLoaderCommand
+        arguments: [ '@app.log.service', '@app.log.collector', '%kernel.logs_dir%' ]
+        tags:
+            - { name: console.command }
+
+    Kassner\LogParser\LogParser: '@app.log.parser'
+
+    app.log.parser:
+        class: Kassner\LogParser\LogParser
+
+    app.log.collector:
+        class: App\Service\Collector
+        arguments: [ '@doctrine.orm.entity_manager', '@app.log.reader', '@app.log.parser' ]
+
+    app.log.reader:
+        class: App\Service\Reader
+
+    app.log.service:
+        class: App\Service\LogService
+
+    app.log.normalizer:
+        class: App\Serializer\LogEntryNormalizer
+        tags:
+            - { name: serializer.normalizer }
